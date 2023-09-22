@@ -40,14 +40,16 @@ export class QuizService {
       where: { id },
     })
     quiz.totalParticipations = quiz.participations.length
-    
+
     let totalNote = 0;
+    let participationWithOutNote = 0;
     let totalScore = 0
     quiz.participations.map((participation) => {
-      totalNote += participation.note
+      if(participation.note) totalNote += participation.note
+      else participationWithOutNote++;
       totalScore += participation.score
     })
-    quiz.averageNote = totalNote / quiz.totalParticipations
+    quiz.averageNote = totalNote / (quiz.totalParticipations - participationWithOutNote)
     quiz.averageScore = totalScore / quiz.totalParticipations
 
 

@@ -21,6 +21,6 @@ export class Participation {
   @ManyToOne(() => User)
   user: User;
 
-  @Column({nullable: true})
+  @Column({nullable: true, scale: 2})
   note: number;
 }
