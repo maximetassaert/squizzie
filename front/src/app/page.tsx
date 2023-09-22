@@ -12,8 +12,40 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import * as React from "react"
+import { useCookies } from 'react-cookie';
+import axios from "axios";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [cookies, setCookie, removeCookie] = useCookies(['auth']);
+
+  const [quizes, setQuizes] = useState([{name: '', creator: {username: ''}, averageNote: 0, title: '', totalParticipations: 0 }])
+
+  useEffect(() => {
+    if(!cookies.auth) return;
+    const fetchData = async () => {
+      const result: any = await axios.get('http://localhost:3001/api/quiz', {
+        headers: {
+         "Authorization": "Bearer " + cookies.auth
+       }});
+     setQuizes(result.data)  
+    }
+    fetchData()
+  })
+
+  let result: any = [];
+  quizes.forEach((quiz) => {
+    result.push(
+      <TableBody>
+        <Link href='/quizz/'>
+        <TableCell className="font-medium">{quiz.creator.username}</TableCell>
+        </Link>
+        <TableCell>{quiz.averageNote} sur 5</TableCell>
+        <TableCell>{quiz.title}</TableCell>
+        <TableCell className="text-right">{quiz.totalParticipations}</TableCell>
+      </TableBody>
+    );
+  });
   return (
     <body>
     <header className='p-4 flex justify-between border-solid border-2 border-slate-200/10 rounded-lg'>
@@ -32,15 +64,8 @@ export default function Home() {
       <TableHead className="text-right">Nombre de participations</TableHead>
     </TableRow>
   </TableHeader>
-  <TableBody>
-  <Link href="/quizz">
-      <TableCell className="font-medium">tutu</TableCell>
-      </Link>
-      <TableCell>5 sur 5</TableCell>
-      <TableCell>Questions pour un champion</TableCell>
-      <TableCell className="text-right">18</TableCell>
-
-  </TableBody>
+  {result}
+  
 </Table>
       </div>
     </body>

@@ -28,35 +28,48 @@ export class QuizService {
   }
 
   async findAll() {
-    return await this.quizRepository.find()
+    const quizes = await this.quizRepository.find({
+      relations: {
+        questions: true,
+        participations: true,
+        creator: true
+      }
+    });
+    return this.formatQuizes(quizes);
+
   }
 
   async findOne(id: number) {
-    const quiz: any = await this.quizRepository.findOne({
+    let quiz: any = await this.quizRepository.findOne({
       relations: {
           questions: true,
           participations: true,
+          creator: true
       },
       where: { id },
     })
-    quiz.totalParticipations = quiz.participations.length
-
-    let totalNote = 0;
-    let participationWithOutNote = 0;
-    let totalScore = 0
-    quiz.participations.map((participation) => {
-      if(participation.note) totalNote += participation.note
-      else participationWithOutNote++;
-      totalScore += participation.score
-    })
-    quiz.averageNote = totalNote / (quiz.totalParticipations - participationWithOutNote)
-    quiz.averageScore = totalScore / quiz.totalParticipations
-
-
-    quiz.participations = undefined;
+    quiz = this.formatQuizes([quiz])[0];
     return quiz;
   }
 
+  formatQuizes(quizes: any[]){
+    return quizes.map((quiz) => {
+      quiz.totalParticipations = quiz.participations.length
+      let totalNote = 0;
+      let participationWithOutNote = 0;
+      let totalScore = 0
+      quiz.participations.map((participation) => {
+        if(participation.note) totalNote += participation.note
+        else participationWithOutNote++;
+        totalScore += participation.score
+      })
+      quiz.averageNote = totalNote / (quiz.totalParticipations - participationWithOutNote)
+      quiz.averageScore = totalScore / quiz.totalParticipations
+  
+      quiz.participations = undefined;
+      return quiz;
+    })
+  }
   async createParticipation(createParticipationDto: CreateParticipationDto): Promise<Participation>{
     const participation = plainToInstance(Participation, createParticipationDto);
     return await this.participationRepository.save(participation);

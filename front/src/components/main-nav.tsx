@@ -43,7 +43,7 @@ export const Nav = () => {
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          {cookies.auth && <>Mon Compte</> || 
+          {cookies.auth && <span className={navigationMenuTriggerStyle()} onClick={(e) => removeCookie('auth')}>Se déconnecter</span> || 
             <Link href="/login" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Se connecter
