@@ -21,18 +21,30 @@ import Link from 'next/link';
 import * as React from "react"
 import { useState } from "react";
 import axios from 'axios';
-
+import { useRouter } from 'next/navigation';
+import { useCookies } from 'react-cookie';
 export default function Login() {
+    const router = useRouter()
+    const [cookies, setCookie, removeCookie] = useCookies(['auth']);
 
-
-    const [registerData, setRegisterData] = useState({
+    const [loginData, setLoginData] = useState({
       email: "",
       password: "",
     });
+    const [registerData, setRegisterData] = useState({
+      email: "",
+      username: "",
+      password: "",
+    });
+
+    const [currentTab, setCurrentTab] = useState("account");
 
   
-  
-    const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const onLoginChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+      setLoginData({ ...loginData, [e.target.name]: e.target.value });
+    };
+
+    const onRegisterChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
       setRegisterData({ ...registerData, [e.target.name]: e.target.value });
     };
 
@@ -41,19 +53,35 @@ export default function Login() {
   //     message: ''
   // })
 
-    const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    const onSubmitLogin: React.FormEventHandler<HTMLFormElement> = async (e) => {
       e.preventDefault()
       try {
-        const result: any = await axios.post('http://localhost:3001/api/auth/login', registerData)
+        const result: any = await axios.post('http://localhost:3001/api/auth/login', loginData)
 
-        console.log(result.access_token)
-        console.log({ status: 'success', message: 'Signup successfully' })
-        setRegisterData({ email: '', password: '' })
+        console.log({ status: 'success', message: 'Login successfully' })
+        setLoginData({ email: '', password: '' })
+        setCookie('auth', result.data.access_token)
+
+        router.push("/")
       } catch (error : any) {
         console.log({ error })
         console.log({ status: 'error', message: 'Something went wrong'})
       }
-  }
+    }
+
+    const onSubmitRegister: React.FormEventHandler<HTMLFormElement> = async (e) => {
+      e.preventDefault()
+      try {
+        const result: any = await axios.post('http://localhost:3001/api/user', registerData)
+
+        console.log({ status: 'success', message: 'Signup successfully' })
+        setCurrentTab('account')
+        setRegisterData({ email: '', password: '', username: '' })
+      } catch (error : any) {
+        console.log({ error })
+        console.log({ status: 'error', message: 'Something went wrong'})
+      }
+    }
 
     return (
       <body>
@@ -62,71 +90,74 @@ export default function Login() {
         <Nav/>
         </header>
         <div className='flex justify-center pt-28'>
-        <Tabs defaultValue="account" className="w-[400px]">
+        <Tabs defaultValue="account" className="w-[400px]" value={currentTab}
+          onValueChange={(e) => setCurrentTab(e)}>
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="account">Se connecter</TabsTrigger>
-        <TabsTrigger value="password">S'inscrire</TabsTrigger>
+        <TabsTrigger value="register">S'inscrire</TabsTrigger>
       </TabsList>
-      <form onSubmit={onSubmit}>
-      <TabsContent value="account">
-        <Card>
-          <CardHeader>
-            <CardTitle>Se connecter</CardTitle>
-            <CardDescription>
-              Merci de vous connecter pour accéder à vos squizz.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor="email">Adresse e-mail</Label>
-              <Input  onChange={onChange}
-            value={registerData.email}
-            type="email"
-            name="email"
-            required/>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Input  onChange={onChange}
-            value={registerData.password}
-            type="password"
-            name="password"
-            required />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button type='submit'>Connexion</Button>
-          </CardFooter>
-        </Card>
-      </TabsContent>
+      <form onSubmit={onSubmitLogin}>
+        <TabsContent value="account">
+          <Card>
+            <CardHeader>
+              <CardTitle>Se connecter</CardTitle>
+              <CardDescription>
+                Merci de vous connecter pour accéder à vos squizz.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor="email">Adresse e-mail</Label>
+                <Input  onChange={onLoginChange}
+              value={loginData.email}
+              type="email"
+              name="email"
+              required/>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="password">Mot de passe</Label>
+                <Input  onChange={onLoginChange}
+              value={loginData.password}
+              type="password"
+              name="password"
+              required />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type='submit'>Connexion</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
       </form>
-      <TabsContent value="password">
-        <Card>
-          <CardHeader>
-            <CardTitle>S'inscrire</CardTitle>
-            <CardDescription>
-              Merci de vous inscrire afin d'accéder aux services de Squizzie.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor="current">Adresse e-mail</Label>
-              <Input id="current" placeholder='mon.compte@exemple.com' />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="current">Nom d'utilisateur</Label>
-              <Input id="current" placeholder='Squeezizi'/>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="new">Mot de passe</Label>
-              <Input id="new" type="password" placeholder='8 caractères minimum'/>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button>Inscription</Button>
-          </CardFooter>
-        </Card>
-      </TabsContent>
+      <form onSubmit={onSubmitRegister}>
+        <TabsContent value="register">
+          <Card>
+            <CardHeader>
+              <CardTitle>S'inscrire</CardTitle>
+              <CardDescription>
+                Merci de vous inscrire afin d'accéder aux services de Squizzie.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor="currentMail">Adresse e-mail</Label>
+                <Input id="currentMail" placeholder='mon.compte@exemple.com' name="email" value={registerData.email} onChange={onRegisterChange} required/>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="current">Nom d'utilisateur</Label>
+                <Input id="current" placeholder='Squeezizi' name="username" value={registerData.username} onChange={onRegisterChange} required/>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new">Mot de passe</Label>
+                <Input id="new" type="password" placeholder='8 caractères minimum' name="password" value={registerData.password} onChange={onRegisterChange} required />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type='submit'>Inscription</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </form>
     </Tabs>
         </div>
       </body>

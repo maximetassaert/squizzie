@@ -12,8 +12,11 @@ import {
     navigationMenuTriggerStyle,
   } from "@/components/ui/navigation-menu"
   import Link from "next/link"
+import { useCookies } from 'react-cookie';
 
 export const Nav = () => {
+  const [cookies, setCookie, removeCookie] = useCookies(['auth']);
+
   return (
     <div>
     <NavigationMenu>
@@ -40,11 +43,13 @@ export const Nav = () => {
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/login" legacyBehavior passHref>
-            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Se connecter
-            </NavigationMenuLink>
-          </Link>
+          {cookies.auth && <>Mon Compte</> || 
+            <Link href="/login" legacyBehavior passHref>
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                Se connecter
+              </NavigationMenuLink>
+            </Link>
+          }
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
