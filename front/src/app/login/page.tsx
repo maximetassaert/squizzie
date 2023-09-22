@@ -20,7 +20,7 @@ import {
 import Link from 'next/link';
 import * as React from "react"
 import { useState } from "react";
-
+import axios from 'axios';
 
 export default function Login() {
 
@@ -44,12 +44,9 @@ export default function Login() {
     const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
       e.preventDefault()
       try {
-        const result = 
-        await fetch('/api/auth/login', {
-          method: 'POST',
-          body: JSON.stringify(registerData)
-        })
-        console.log(result)
+        const result: any = await axios.post('http://localhost:3001/api/auth/login', registerData)
+
+        console.log(result.access_token)
         console.log({ status: 'success', message: 'Signup successfully' })
         setRegisterData({ email: '', password: '' })
       } catch (error : any) {
@@ -70,7 +67,7 @@ export default function Login() {
         <TabsTrigger value="account">Se connecter</TabsTrigger>
         <TabsTrigger value="password">S'inscrire</TabsTrigger>
       </TabsList>
-      <form action="">
+      <form onSubmit={onSubmit}>
       <TabsContent value="account">
         <Card>
           <CardHeader>
